@@ -1,30 +1,39 @@
 import User from '../models/user.model.js';
 import ApiError from '../utils/apiError.js';
-import apiResponse from "../utils/apiResponse.js";
 import asyncHandler from '../utils/asyncHandler.js';
 // Sign Up
-const signUp = asyncHandler(async (req, res) => {
+const signUp = asyncHandler(async (req, res, next) => {
     const { username, email, password, address } = req.body;
+    console.log(req.body);
+
+    if (!username || !email || !password || !address) {
+        return next(new ApiError(400, "All fields are required"));
+    }
+
+    if (typeof username !== 'string' || username.trim() === "" ||
+        typeof email !== 'string' || email.trim() === "" ||
+        typeof password !== 'string' || password.trim() === "" ||
+        typeof address !== 'object' || !address.street || !address.city || !address.state) {
+        return next(new ApiError(400, "All fields are required and must be valid"));
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
         return next(new ApiError(400, 'User already exists'));
     }
 
-    if (
-        [username, email, password, address].some((field) => field.trim === "")
-    ){
-        throw new Error("All fields are required") ;
-    }
     const isUser = await User.create({ username, email, password, address });
     if (!isUser) {
-        throw new Error("Failed to create user") ;
+        return next(new ApiError(500, "Failed to create user"));
     }
 
-    return res.status(201).json(
-        new apiResponse(200 , {isUser} , "User created successfully") 
-    )
+    return res.status(201).json({
+        success: true,
+        data: isUser,
+        message: "User created successfully"
+    });
 });
+
 
 // Sign In
 export const logIN = asyncHandler(async (req, res, next) => {
@@ -48,7 +57,7 @@ export const signOut = asyncHandler(async (req, res, next) => {
         message: 'User signed out successfully'
     });
 });
+
 export {
     signUp
 };
-
