@@ -12,7 +12,7 @@ const signUp = asyncHandler(async (req, res) => {
     }
 
     if (
-        [username, email, password, address].some((field) => field.trim() === "")
+        [username, email, password, address].some((field) => field.trim === "")
     ){
         throw new Error("All fields are required") ;
     }
