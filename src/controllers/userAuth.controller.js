@@ -1,9 +1,9 @@
 import User from '../models/user.model.js';
 import ApiError from '../utils/apiError.js';
+import apiResponse from "../utils/apiResponse.js";
 import asyncHandler from '../utils/asyncHandler.js';
-
 // Sign Up
-export const signUp = asyncHandler(async (req, res, next) => {
+export const signUp = asyncHandler(async (req, res) => {
     const { username, email, password, address } = req.body;
 
     const userExists = await User.findOne({ email });
@@ -11,12 +11,19 @@ export const signUp = asyncHandler(async (req, res, next) => {
         return next(new ApiError(400, 'User already exists'));
     }
 
-    const user = await User.create({ username, email, password, address });
+    if (
+        [username, email, password, address].some((field) => field.trim() === "")
+    ){
+        throw new Error("All fields are required") ;
+    }
+    const isUser = await User.create({ username, email, password, address });
+    if (!isUser) {
+        throw new Error("Failed to create user") ;
+    }
 
-    res.status(201).json({
-        success: true,
-        data: user
-    });
+    return res.status(201).json(
+        new apiResponse(200 , {isUser} , "User created successfully") 
+    )
 });
 
 // Sign In
@@ -41,3 +48,4 @@ export const signOut = asyncHandler(async (req, res, next) => {
         message: 'User signed out successfully'
     });
 });
+
