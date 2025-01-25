@@ -3,7 +3,7 @@ import ApiError from '../utils/apiError.js';
 import apiResponse from "../utils/apiResponse.js";
 import asyncHandler from '../utils/asyncHandler.js';
 // Sign Up
-export const signUp = asyncHandler(async (req, res) => {
+const signUp = asyncHandler(async (req, res) => {
     const { username, email, password, address } = req.body;
 
     const userExists = await User.findOne({ email });
@@ -48,4 +48,7 @@ export const signOut = asyncHandler(async (req, res, next) => {
         message: 'User signed out successfully'
     });
 });
+export {
+    signUp
+};
 
