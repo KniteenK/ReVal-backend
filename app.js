@@ -1,5 +1,6 @@
+import bodyParser from 'body-parser';
 import cors from 'cors';
-import { configDotenv } from 'dotenv';
+import { config as configDotenv } from 'dotenv';
 import express from 'express';
 import userRouter from './src/routes/user.route.js';
 
@@ -12,11 +13,11 @@ app.use(cors({
 }));
 
 // Middleware to parse application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Middleware to parse application/json
 app.use(express.json());
-
 
 app.use('/api/v1/user', userRouter);
 
