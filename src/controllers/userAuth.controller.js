@@ -4,7 +4,7 @@ import apiResponse from '../utils/apiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // Sign Up
-const signUp = asyncHandler(async (req, res, next) => {
+export const signUp = asyncHandler(async (req, res, next) => {
     const { username, email, password, address } = req.body;
     console.log(req.body);
 
@@ -31,6 +31,11 @@ const signUp = asyncHandler(async (req, res, next) => {
 
     const accessToken = isUser.generateAccessToken();
     const refreshToken = isUser.generateRefreshToken();
+
+    if (!accessToken || !refreshToken) {
+        return next(new ApiError(500, "Failed to generate tokens"));
+    }
+
     isUser.accessToken = accessToken;
     await isUser.save({ validateBeforeSave: false });
 
@@ -47,7 +52,7 @@ const signUp = asyncHandler(async (req, res, next) => {
     );
 });
 
-// Sign In
+// log In
 export const logIN = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -58,6 +63,11 @@ export const logIN = asyncHandler(async (req, res, next) => {
 
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
+
+    if (!accessToken || !refreshToken) {
+        return next(new ApiError(500, "Failed to generate tokens"));
+    }
+
     user.accessToken = accessToken;
     await user.save({ validateBeforeSave: false });
 
@@ -78,52 +88,28 @@ export const logIN = asyncHandler(async (req, res, next) => {
 
 // Sign Out
 export const signOut = asyncHandler(async (req, res, next) => {
-    res.status(200).json({
-        success: true,
-        message: 'User signed out successfully'
-    });
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $unset: {
+                accessToken: 1
+            }
+        },
+        { 
+            new: true  
+        }
+    );
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    };
+
+    return res
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new apiResponse(200, {}, "User logged out successfully"));
 });
 
 
-const refreshAccessToken = asyncHandler(async(req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken;
-    if (!incomingRefreshToken) {
-        throw new apiError(401, "Unauthorized Request");
-    }
-    
-   try {
-     const decodedToken = jwt.verify(incomingRefreshToken, process.env.ACCESS_REFRESH_TOKEN) ;
-     
-     const hustler = Hustler.findById(decodedToken?._id)
-     
-     if (!hustler) {
-         throw new apiError(401, "Invalid Refresh Token");
-     }
- 
-     if (decodedToken !== hustler?.refreshToken) {
-         throw new apiError(401, "Refresh Token is expired");
-     }
- 
-     const options = {
-         httpOnly: true,
-         secure: true
-     }
- 
-     const token = await generateAccessToken(hustler._id) 
- 
-     return res.status(200)
-     .cookies("refreshToken" , token)
-     .json(
-         new apiResponse(200, {
-             accessToken: token
-         }, "Access token refreshed successfully")
-     )
-   } catch (error) {
-     throw new apiError(500, error?.message || "Failed to refresh access token");
-   }
-    
-})
-
-
-
-export { signUp };

@@ -33,7 +33,7 @@ const UserSchema = new Schema({
     }
 });
 
-
+// Encrypt password before saving
 UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         next();
@@ -42,12 +42,12 @@ UserSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-
+// Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-
+// Generate access token
 UserSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         { _id: this._id, username: this.username, email: this.email },
@@ -56,7 +56,7 @@ UserSchema.methods.generateAccessToken = function () {
     );
 };
 
-
+// Generate refresh token
 UserSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         { _id: this._id },
