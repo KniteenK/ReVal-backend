@@ -21,4 +21,7 @@ app.use(express.json());
 
 app.use('/api/v1/user', userRouter);
 
+import postRouter from './src/routes/post.route.js';
+app.use('/api/v1/post', postRouter);
+
 export default app;

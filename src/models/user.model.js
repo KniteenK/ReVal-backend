@@ -20,6 +20,10 @@ const UserSchema = new Schema({
         type: String,
         required: true
     },
+    profilePicture: {
+        type: String, // URL of profile image
+        default: "default-profile.png"
+    },
     address: {
         street: String,
         city: String,
@@ -30,7 +34,52 @@ const UserSchema = new Schema({
     },
     refreshToken: {
         type: String
-    }
+    },
+    walletAddress: {
+        type: String, // User’s blockchain wallet address
+        unique: true,
+        sparse: true
+    },
+    blockchainTransactions: [{
+        txId: {
+            type: String // Stores transaction hash from blockchain
+        },
+        amount: {
+            type: Number
+        },
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    rating: {
+        type: Number,
+        default: 0
+    },
+    itemsListed: [{
+        type: Schema.Types.ObjectId,
+        ref: "Product"
+    }],
+    itemsSold: [{
+        type: Schema.Types.ObjectId,
+        ref: "Product"
+    }],
+    followers: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    following: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }],
+    socialPosts: [{
+        postContent: String,
+        images: [String],
+        timestamp: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 });
 
 // Encrypt password before saving
@@ -40,6 +89,7 @@ UserSchema.pre('save', async function (next) {
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
 // Match user entered password to hashed password in database
