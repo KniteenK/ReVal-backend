@@ -52,23 +52,9 @@ const ProductSchema = new Schema({
         }
     }],
     transactionHistory: [{
-        buyerId: {
+        transactionId: {
             type: Schema.Types.ObjectId,
-            ref: "User"
-        },
-        sellerId: {
-            type: Schema.Types.ObjectId,
-            ref: "User"
-        },
-        price: {
-            type: Number
-        },
-        timestamp: {
-            type: Date,
-            default: Date.now
-        },
-        blockchainTxId: {
-            type: String // Store blockchain transaction ID
+            ref: "Transaction"
         }
     }],
     blockchainTxId: {
@@ -80,7 +66,7 @@ const ProductSchema = new Schema({
             ref: "User"
         },
         newCondition: {
-            type: String // e.g., "Like New", "Used - Good"
+            type: String 
         },
         timestamp: {
             type: Date,
